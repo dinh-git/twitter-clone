@@ -1,0 +1,24 @@
+{
+  "name": "twitter-clone",
+  "version": "1.0.0",
+  "description": "Twitter Clone by John & Luan",
+  "main": "app.js",
+  "dependencies": {
+    "express": "^4.14.0",
+    "sqlite3": "^3.1.4"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dinh-git/twitter-clone.git"
+  },
+  "author": "John & Luan",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dinh-git/twitter-clone/issues"
+  },
+  "homepage": "https://github.com/dinh-git/twitter-clone#readme"
+}
