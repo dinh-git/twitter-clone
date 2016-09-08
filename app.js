@@ -32,24 +32,51 @@ app.get('/list-user', function (req, res) {
     });
 });
 
+app.get('/view-tweets', function (req, res) {
+    var value = "<table><tr><td>ID</td><td>UserName</td><td>Tweet</td><td>Date</td></tr>";
+    db.serialize(function () {
+        db.each("SELECT rowid AS id, userName, tweet, date FROM Tweets", function (err, row) {
+            value += "<tr><td>" + row.id + "</td><td>" + row.userName + "</td><td>" + row.tweet + "</td><td>" + new Date(row.date) + "</td></tr>";
+        }, function () {
+            res.send(value + "</table>");
+        });
+    });
+});
+
 app.post('/add-user', function (req, res) {
     var userName = req.body.userName;
     if (userName.includes(" ")) {
         res.send("Username cannot contain any spaces.");
     }
 
-    if (doesUserNameExist(userName)) {
-        res.send("Username already exists");
-    } else {
-        var stmt = db.prepare("INSERT INTO Users VALUES (?, ?, ?)");
-        stmt.run(userName, req.body.firstName, req.body.lastName);
-        stmt.finalize();
-        res.send("username has been added to db");
-    }
+    db.serialize(function () {
+        db.each("SELECT userName FROM Users WHERE userName = ?", userName, function (err, row) {
+            if (row) {
+                res.send("Username already exists");
+            } else {
+                var stmt = db.prepare("INSERT INTO Users VALUES (?, ?, ?)");
+                stmt.run(userName, req.body.firstName, req.body.lastName);
+                stmt.finalize();
+                res.send("username has been added to db");
+            }
+        });
+    });
 });
 
 app.post('/send-tweet', function (req, res) {
     var userName = req.body.userName;
+    db.serialize(function () {
+        db.each("SELECT userName FROM Users WHERE userName = ?", userName, function (err, row) {
+            if (row) {
+                stmt = db.prepare("INSERT INTO Tweets VALUES (?, ?, ?)");
+                stmt.run(userName, req.body.tweet, (new Date()).getTime());
+                stmt.finalize();
+                res.redirect("/view-tweets")
+            } else {
+                res.send("username " + userName + " is not found");
+            }
+        });
+    });
 });
 
 app.listen(3000, function () {
@@ -58,11 +85,16 @@ app.listen(3000, function () {
 
 
 function doesUserNameExist(userName) {
+    var doesExist = false;
     db.serialize(function () {
-        db.get("SELECT userName FROM Users WHERE userName = ?", userName, function (err, row) {
+        db.each("SELECT userName FROM Users WHERE userName = ?", userName, function (err, row) {
             if (row) {
                 return true;
             } else {
+                return false;
+            }
+        }, function (err, rows) {
+            if (rows == 0) {
                 return false;
             }
         });
