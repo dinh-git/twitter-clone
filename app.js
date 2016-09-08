@@ -1,40 +1,54 @@
 var express = require('express');
 var app = express();
+app.use(express.static('html'));
+
+var bodyParser = require('body-parser');
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({
+    extended: true
+}));
 
 var sqlite3 = require('sqlite3').verbose();
-var db = new sqlite3.Database('test.db');
-
-initDB(db);
-
-db.close();
+var db = new sqlite3.Database('twitter-clone.db');
 
 app.get('/', function (req, res) {
     res.send('Hello world!');
 });
 
-app.get('/foo', function (req,res) {
+app.get('/foo', function (req, res) {
     res.send('yo');
+});
+
+app.get('/list-user', function (req, res) {
+    var value = "<table><tr><td>ID</td><td>UserName</td><td>FirstName</td><td>LastName</td></tr>";
+    db.serialize(function () {
+        db.each("SELECT rowid AS id, userName, firstName, lastName FROM Users", function (err, row) {
+            value += "<tr><td>" + row.id + "</td><td>" + row.userName + "</td><td>" + row.firstName + "</td><td>" + row.lastName + "</td></tr>";
+        }, function () {
+            res.send(value + "</table>");
+        });
+    });
+});
+
+app.post('/add-user', function (req, res) {
+    var userName = req.body.userName;
+    if (userName.includes(" ")) {
+        res.send("Username cannot contain any spaces.");
+    }
+    db.serialize(function () {
+        db.get("SELECT userName FROM Users WHERE userName = ?", userName, function (err, row) {
+            if (row) {
+                res.send("Username already exists");
+            } else {
+                var stmt = db.prepare("INSERT INTO Users VALUES (?, ?, ?)");
+                stmt.run(userName, req.body.firstName, req.body.lastName);
+                stmt.finalize();
+                res.send("username has been added to db");
+            }
+        });
+    });
 });
 
 app.listen(3000, function () {
     console.log('Example app listening on port 3000!');
 });
-
-function initDB(db) {
-    db.serialize(function () {
-        db.run("CREATE TABLE lorem (info TEXT)");
-
-        var stmt = db.prepare("INSERT INTO lorem VALUES (?)");
-        for (var i = 0; i < 10; i++) {
-            stmt.run("Ipsum " + i);
-        }
-        stmt.finalize();
-
-        db.each("SELECT rowid AS id, info FROM lorem", function (err, row) {
-            if (err) {
-                console.log(err);
-            }
-            console.log(row.id + ": " + row.info);
-        });
-    });
-}
