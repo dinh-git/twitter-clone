@@ -12,6 +12,14 @@ app.get('/', function (req, res) {
     res.send('Hello world!');
 });
 
+app.get('/foo', function (req,res) {
+    res.send('yo');
+});
+
+app.listen(3000, function () {
+    console.log('Example app listening on port 3000!');
+});
+
 function initDB(db) {
     db.serialize(function () {
         db.run("CREATE TABLE lorem (info TEXT)");
