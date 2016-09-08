@@ -1,4 +1,5 @@
 var express = require('express');
+var fs = require('fs');
 var app = express();
 app.use(express.static('html'));
 
@@ -13,10 +14,20 @@ var db = new sqlite3.Database('twitter-clone.db');
 
 initDB();
 
-app.get('/', function (req, res) {
-    res.send('Hello world!');
+var cHome;
+
+fs.readFile('home.txt', 'utf8', function read(err, data) {
+    if (err) {
+        throw err;
+    }
+    //console.log(data);
+    cHome = data;
 });
 
+
+app.get('/', function (req, res) {
+    res.send(cHome);
+});
 app.get('/foo', function (req, res) {
     res.send('yo');
 });
@@ -27,7 +38,7 @@ app.get('/list-user', function (req, res) {
         db.each("SELECT rowid AS id, userName, firstName, lastName FROM Users", function (err, row) {
             value += "<tr><td>" + row.id + "</td><td>" + row.userName + "</td><td>" + row.firstName + "</td><td>" + row.lastName + "</td></tr>";
         }, function () {
-            res.send(value + "</table>");
+            res.send(value + "</table><br><br><a href='/'>Back to Home</a>");
         });
     });
 });
@@ -38,7 +49,7 @@ app.get('/view-tweets', function (req, res) {
         db.each("SELECT rowid AS id, userName, tweet, date FROM Tweets", function (err, row) {
             value += "<tr><td>" + row.id + "</td><td>" + row.userName + "</td><td>" + row.tweet + "</td><td>" + new Date(row.date) + "</td></tr>";
         }, function () {
-            res.send(value + "</table>");
+            res.send(value + "</table><br><br><a href='/'>Back to Home</a>");
         });
     });
 });
