@@ -17,18 +17,20 @@ module.exports = {
                     CREATE TABLE IF NOT EXISTS tweet (
                         userName TEXT,
                         content TEXT,
+                        date DATETIME,
                         FOREIGN KEY (userName) REFERENCES user(userName)
                     );
 
                     CREATE TABLE IF NOT EXISTS followingRel (
-                        userId INTEGER,
-                        followerUserId INTEGER,
-                        FOREIGN KEY (followerUserId) REFERENCES user(id)
+                        userName TEXT,
+                        followerUserName TEXT,
+                        FOREIGN KEY (followerUserName) REFERENCES user(userName)
                     );
 
                     CREATE TABLE IF NOT EXISTS likeTweetRel (
-                        userId INTEGER,
+                        userName TEXT,
                         tweetId INTEGER,
+                        FOREIGN KEY (userName) REFERENCES user(userName),
                         FOREIGN KEY (tweetId) REFERENCES tweet(id)
                     );
                 `;
@@ -53,6 +55,26 @@ module.exports = {
             var stmt = db.prepare("INSERT INTO user VALUES (?, ?, ?)");
             stmt.run(userName, firstName, lastName, function (err) { callback(!err ? true : false); });
             stmt.finalize();
+        });
+    },
+
+    insertTweet: function (userName, content, callback) {
+        db.serialize(function () {
+            var stmt = db.prepare("INSERT INTO tweet VALUES (?, ?, ?)");
+            stmt.run(userName, content, (new Date()).getTime(), function (err) { callback(!err ? true : false); });
+            stmt.finalize();
+        });
+    },
+
+    getAllTweet: function (userName, callback) {
+        db.all("SELECT rowid as id, * FROM tweet WHERE userName = ?", userName, function (err, row) {}, function (err, rows) {
+            callback(rows);
+        });
+    },
+
+    getAllUsers: function (callback) {
+        db.all("SELECT rowid as id, * FROM user", function (err, row) {}, function (err, rows) {
+            callback(rows);
         });
     }
 };
