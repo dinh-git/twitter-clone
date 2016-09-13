@@ -25,11 +25,7 @@ app.get('/', function (req, res) {
 
 app.get('/list-user', function (req, res) {
     dbManager.getAllUsers(function (users) {
-        var value = "";
-        for (var user of users) {
-            value += user.userName;
-        }
-        res.send(value);
+        res.json(users);
     });
 });
 
@@ -37,13 +33,10 @@ app.get('/view-tweets', function (req, res) {
     var userName = req.cookies.userId;
     if (userName === undefined) {
         console.log("cannot find any userName from cookie");
+        res.json({error: "no userName is found from cookies"});
     } else {
         dbManager.getAllTweet(userName, function (tweets) {
-            var value = "";
-            for (var tweet of tweets) {
-                value += tweet.userName + " - " + tweet.content + "<br />";
-            }
-            res.send(value);
+            res.json(tweets);
         });
     }
 });
@@ -55,13 +48,18 @@ app.post('/login', function (req, res) {
         if (user) {
             res.cookie('userName', userName);
             res.cookie('userFullName', user.firstName + " " + user.lastName);
-            res.send(user.firstName + " " + user.lastName)
+            res.json(user)
             console.log("user is logged in");
         } else {
             console.log("user is not found");
-            res.send("no user found");
+            res.json({ error: "User is not found" });
         }
     });
+});
+
+app.all("/logout", function(req, res) {
+    res.clearCookie("userName");
+    res.json({result: "cookie has been cleared"});
 });
 
 app.post('/add-user', function (req, res) {
@@ -70,13 +68,13 @@ app.post('/add-user', function (req, res) {
     var lastName = req.body.lastName;
     dbManager.doesUserExist(userName, function (user) {
         if (user) {
-            res.send("user already exists in database");
+            res.json({ error: "user already exists in database" });
         } else {
             dbManager.insertUser(userName, firstName, lastName, function (success) {
                 if (success) {
-                    res.send("successfully added user with username " + userName);
+                    res.json({ result: "successful" });
                 } else {
-                    res.send("encounted error while inserting user with username " + userName);
+                    res.json({ error: "error encounted" });
                 }
             });
         }
@@ -87,13 +85,14 @@ app.post('/send-tweet', function (req, res) {
     var userName = req.cookies.userName;
     if (userName === undefined) {
         console.log("cannot find any userName from cookie");
+        res.json({error: "no userName is found from cookies"});
     } else {
         var content = req.body.content;
         dbManager.insertTweet(userName, content, function (success) {
             if (success) {
-                res.send("successfully sent tweet");
+                res.json({ result: "successful" });
             } else {
-                res.send("encounted error while sending tweet");
+                res.json({ error: "error encounted" });
             }
         });
     }
