@@ -39,7 +39,7 @@ module.exports = {
     },
 
     doesUserExist: function (userName, callback) {
-        db.get("SELECT * FROM user WHERE userName = ?", userName, function (err, row) {
+        db.get("SELECT rowid as id, * FROM user WHERE userName = ?", userName, function (err, row) {
             if (err || row == undefined) {
                 callback(null);
             } else {
