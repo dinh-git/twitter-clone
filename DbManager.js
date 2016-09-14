@@ -21,10 +21,11 @@ module.exports = {
                         FOREIGN KEY (userName) REFERENCES user(userName)
                     );
 
-                    CREATE TABLE IF NOT EXISTS followingRel (
+                    CREATE TABLE IF NOT EXISTS followingRel2 (
                         userName TEXT,
-                        followerUserName TEXT,
-                        FOREIGN KEY (followerUserName) REFERENCES user(userName)
+                        followingUserName TEXT,
+                        FOREIGN KEY (userName) REFERENCES user(userName),
+                        FOREIGN KEY (followingUserName) REFERENCES user(userName)
                     );
 
                     CREATE TABLE IF NOT EXISTS likeTweetRel (
@@ -66,14 +67,54 @@ module.exports = {
         });
     },
 
-    getAllTweet: function (userName, callback) {
-        db.all("SELECT rowid as id, * FROM tweet WHERE userName = ?", userName, function (err, row) {}, function (err, rows) {
+    getUserTweet: function (userName, callback) {
+        db.all("SELECT rowid as id, * FROM tweet WHERE userName = ?", userName, function (err, row) { }, function (err, rows) {
+            callback(rows);
+        });
+    },
+
+    getTweetById: function (tweetId, callback) {
+        db.all("SELECT rowid as id, * FROM tweet WHERE id = ?", tweetId, function (err, row) { }, function (err, rows) {
+            callback(rows);
+        });
+    },
+
+    likeTweet: function (userName, tweetId, callback) {
+        db.serialize(function () {
+            var stmt = db.prepare("INSERT INTO likeTweetRel VALUES (?, ?)");
+            stmt.run(userName, tweetId, function (err) { callback(!err ? true : false); });
+            stmt.finalize();
+        });
+    },
+
+    getAllLikes: function (userName, callback) {
+        db.all("SELECT rowid as id, * FROM likeTweetRel where userName = ?", userName, function (err, row) { }, function (err, rows) {
+            callback(rows);
+        });
+    },
+
+    getAllTweet: function (callback) {
+        db.all("SELECT rowid as id, * FROM tweet", function (err, row) { }, function (err, rows) {
+            callback(rows);
+        });
+    },
+
+    followUser: function (userName, followingUserName, callback) {
+        db.serialize(function () {
+            var stmt = db.prepare("INSERT INTO followingRel2 VALUES (?, ?)");
+            stmt.run(userName, followingUserName, function (err) { callback(!err ? true : false); });
+            stmt.finalize();
+        });
+    },
+
+    getAllFollowing: function (userName, callback) {
+        db.all("SELECT rowid as id, * FROM followingRel2 where userName = ?", userName, function (err, row) { }, function (err, rows) {
             callback(rows);
         });
     },
 
     getAllUsers: function (callback) {
-        db.all("SELECT rowid as id, * FROM user", function (err, row) {}, function (err, rows) {
+        db.all("SELECT rowid as id, * FROM user", function (err, row) { }, function (err, rows) {
             callback(rows);
         });
     }
