@@ -36,17 +36,30 @@ app.get('/list-user', function (req, res) {
 });
 
 app.get('/view-tweets', function (req, res) {
-    var userName = req.cookies.userName;
-    if (userName == null) {
-        console.log("cannot find any userName from cookie");
-        res.json({ error: "no userName is found from cookies" });
-    } else {
-        // dbManager.getAllTweet(userName, function (tweets) {
-        dbManager.getAllTweet(function (tweets) {
-            res.json(tweets);
-            console.log(tweets);
-        });
-    }
+// <<<<<<< HEAD
+//     var userName = req.cookies.userName;
+//     if (userName == null) {
+//         console.log("cannot find any userName from cookie");
+//         res.json({ error: "no userName is found from cookies" });
+//     } else {
+//         // dbManager.getAllTweet(userName, function (tweets) {
+//         dbManager.getAllTweet(function (tweets) {
+//             res.json(tweets);
+//             console.log(tweets);
+//         });
+//     }
+// =======
+    dbManager.getAllTweet(function (tweets) {
+        res.json(tweets);
+    });
+});
+
+app.get("/userfeed/:userName", function (req, res) {
+    var userName = req.params.userName;
+    dbManager.getUserTweet(userName, function (tweets) {
+        res.json(tweets);
+    });
+//>>>>>>> 7d67a8de3afd5a5bbdb72438b67b79d74ddfad70
 });
 
 app.post('/login', function (req, res) {
