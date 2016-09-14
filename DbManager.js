@@ -88,7 +88,7 @@ module.exports = {
     },
 
     getAllLikes: function (userName, callback) {
-        db.all("SELECT rowid as id, * FROM likeTweetRel where userName = ?", userName, function (err, row) { }, function (err, rows) {
+        db.all("SELECT * FROM likeTweetRel as like inner join tweet as tweet on tweet.rowid = like.tweetId where like.userName = ?", userName, function (err, row) { }, function (err, rows) {
             callback(rows);
         });
     },
@@ -107,8 +107,16 @@ module.exports = {
         });
     },
 
+    unfollowUser: function (userName, followingUserName, callback) {
+        db.serialize(function () {
+            var stmt = db.prepare("DELETE FROM followingRel2 WHERE userName = ? AND followingUserName = ?");
+            stmt.run(userName, followingUserName, function (err) { callback(!err ? true : false); });
+            stmt.finalize();
+        });
+    },
+
     getAllFollowing: function (userName, callback) {
-        db.all("SELECT rowid as id, * FROM followingRel2 where userName = ?", userName, function (err, row) { }, function (err, rows) {
+        db.all("SELECT * FROM followingRel2 where userName = ?", userName, function (err, row) { }, function (err, rows) {
             callback(rows);
         });
     },
