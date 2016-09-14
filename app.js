@@ -36,15 +36,16 @@ app.get('/list-user', function (req, res) {
 });
 
 app.get('/view-tweets', function (req, res) {
-    var userName = req.cookies.userName;
-    if (userName == null) {
-        console.log("cannot find any userName from cookie");
-        res.json({ error: "no userName is found from cookies" });
-    } else {
-        dbManager.getAllTweet(userName, function (tweets) {
-            res.json(tweets);
-        });
-    }
+    dbManager.getAllTweet(function (tweets) {
+        res.json(tweets);
+    });
+});
+
+app.get("/userfeed/:userName", function (req, res) {
+    var userName = req.params.userName;
+    dbManager.getUserTweet(userName, function (tweets) {
+        res.json(tweets);
+    });
 });
 
 app.post('/login', function (req, res) {
