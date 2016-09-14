@@ -48,27 +48,50 @@
                                  "@"+result[i].userName +
                                  "<span class='tweet-date'>"+n+"</span><br />" + 
                                  result[i].content + "<br /><br />" +
-                                 "<span class='heart'><img onclick='javascript:likeClicked("+i+");' src='like-black.svg' style='width:20px;' /></span> " +
-                                 "<span class='follow'><img onclick='javascript:followClicked("+i+");' src='follow-black.png' style='width:27px;'/></span></div><br />");
+                                 "<span class='heart'><img onclick='javascript:likeClicked(&quot;"+result[i].id+"&quot;);' src='like-black.svg' style='width:20px;' /></span> " +
+                                 "<span class='follow'><img onclick='javascript:followClicked(&quot;"+result[i].userName+"&quot;);' src='follow-black.png' style='width:27px;'/></span></div><br />");
           });
         }
     }, "json");
   });
 
-  // followClicked
-  function followClicked(id) {
-    //alert("Follow icon id #"+id+" clicked!");
-    $.post("/followClicked", {id:id}, function(result){
-      $('#messageBox').html(result.message);
+  // old followClicked
+  // function followClicked(id) {
+  //   //alert("Follow icon id #"+id+" clicked!");
+  //   $.post("/followClicked", {userName:userName}, function(result){
+  //     $('#messageBox').html(result.message);
+  //   }, "json");    
+  // }
+  // old likeClicked
+  // function likeClicked(id) {
+  //   //alert("Like icon id #"+id+" clicked!");
+  //   $.post("/likeClicked", {id:id}, function(result){
+  //     $('#messageBox').html(result.message);
+  //   }, "json");  
+  //}
+
+  // new followClicked
+  function followClicked(userName) {
+    var param = '/follow/'+userName;
+    $.getJSON(param, function(result){
+      if (result.error) {
+        $('#messageBox').html(result.error);
+      } else {
+        $('#messageBox').html(result.message);
+      }      
     }, "json");    
   }
 
-  // likeClicked
+  // new likeClicked
   function likeClicked(id) {
-    //alert("Like icon id #"+id+" clicked!");
-    $.post("/likeClicked", {id:id}, function(result){
-      $('#messageBox').html(result.message);
-    }, "json");  
+    var param = '/like/'+id;
+    $.getJSON(param, function(result){
+      if (result.error) {
+        $('#messageBox').html(result.error);
+      } else {
+        $('#messageBox').html(result.message);
+      }      
+    }, "json");    
   }
 
 
