@@ -19,8 +19,14 @@ app.use(bodyParser.urlencoded({
 dbManager.init();
 
 app.get('/', function (req, res) {
-    console.log("redirecting to index.html (GET)...");
-    res.redirect('index.html');
+    var userName = req.cookies.userName;
+    console.log("userName: " + userName);
+    if (userName == null) {
+        res.redirect('/login.html');
+    } else {
+        res.redirect('/default.html');
+    }
+    
 });
 
 app.get('/list-user', function (req, res) {
@@ -30,8 +36,8 @@ app.get('/list-user', function (req, res) {
 });
 
 app.get('/view-tweets', function (req, res) {
-    var userName = req.cookies.userId;
-    if (userName === undefined) {
+    var userName = req.cookies.userName;
+    if (userName == null) {
         console.log("cannot find any userName from cookie");
         res.json({error: "no userName is found from cookies"});
     } else {
@@ -42,24 +48,48 @@ app.get('/view-tweets', function (req, res) {
 });
 
 app.post('/login', function (req, res) {
-    console.log("got it");
     var userName = req.body.userName;
     dbManager.doesUserExist(userName, function (user) {
+        console.log(userName, user);
         if (user) {
             res.cookie('userName', userName);
             res.cookie('userFullName', user.firstName + " " + user.lastName);
-            res.json(user)
-            console.log("user is logged in");
+            console.log(userName + " is logged in");
+            res.json({userName: user});
         } else {
             console.log("user is not found");
             res.json({ error: "User is not found" });
+
         }
     });
 });
 
 app.all("/logout", function(req, res) {
     res.clearCookie("userName");
-    res.json({result: "cookie has been cleared"});
+    //res.json({result: "cookie has been cleared"});
+    console.log("user is logged out");
+    res.redirect('/login.html');
+});
+
+app.all("/default", function(req, res) {
+    var userName = req.cookies.userName;
+    if (userName == null) {
+        res.json({error: "no userName is found from cookies"});
+    } else {
+        res.json({userName: userName});
+    }
+});
+
+app.all("/followClicked", function(req, res) {
+    var id = req.body.id;
+    console.log("Back-end console says: 'Follow icon clicked!'");
+    res.json({message: "Back-end console says: 'Follow icon id #"+id+" clicked!'"})
+});
+
+app.all("/likeClicked", function(req, res) {
+    var id = req.body.id;
+    console.log("Back-end console says: 'Like icon clicked!'");
+    res.json({message: "Back-end console says: 'Like icon id #"+id+" clicked!'"})
 });
 
 app.post('/add-user', function (req, res) {
@@ -83,7 +113,7 @@ app.post('/add-user', function (req, res) {
 
 app.post('/send-tweet', function (req, res) {
     var userName = req.cookies.userName;
-    if (userName === undefined) {
+    if (userName == null) {
         console.log("cannot find any userName from cookie");
         res.json({error: "no userName is found from cookies"});
     } else {
