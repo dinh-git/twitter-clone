@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <title>Twitter Log In</title>
+  <link href="login-box.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+  <center>
+    <div><h1>Welcome to Twitter, <span id="userName"></span>!</h1></div>
+      <div id="logo">
+        <img src="twitter.svg" />
+      </div><br />
+      <form id="loginForm" name="loginForm" action="/logout" method="POST">
+        <input class="logout-box" type="submit" value="Log Out" name="submit" id="submit" />
+      </form><br /><br />
+      <div id="messageBox"></div>
+      <br />
+      <div id="tweets"></div>
+    <br /><br /><br />
+    <div><a href="/list-user">List Users</a> | <a href="/add-user.html">Add New User</a> | <a href="/view-tweets">View Tweets</a> | <a href="/send-tweet.html"> Send Twitter</a></div>
+  </center>
+</body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+<script>
+  $(function() {
+    $.post("/default", null, function(result){
+        if (result.error) {
+          window.location.replace("/login.html");
+        } else {
+          $('#userName').html(result.userName);
+        }
+    }, "json");
+    $.getJSON("/view-tweets", function(result){
+        if (result.error) {
+          window.location.replace("/login.html");
+        } else {
+          $.each(result, function(i, field) {
+            var d = new Date(result[i].date);
+            var n = (d.getMonth()+1) + "/" + 
+                                 d.getDate() + "/"  + 
+                                 d.getFullYear() + " " +
+                                 d.getHours() + ":" +
+                                 d.getMinutes() + ":" +
+                                 d.getSeconds();
+            $('#tweets').append( "<div id='tweet-box'><span class='tweet-username'>" + "John Fine" + "</span>"+
+                                 "@"+result[i].userName +
+                                 "<span class='tweet-date'>"+n+"</span><br />" + 
+                                 result[i].content + "<br /><br />" +
+                                 "<span class='heart'><img onclick='javascript:likeClicked("+i+");' src='like-black.svg' style='width:20px;' /></span> " +
+                                 "<span class='follow'><img onclick='javascript:followClicked("+i+");' src='follow-black.png' style='width:27px;'/></span></div><br />");
+          });
+        }
+    }, "json");
+  });
+
+  // followClicked
+  function followClicked(id) {
+    //alert("Follow icon id #"+id+" clicked!");
+    $.post("/followClicked", {id:id}, function(result){
+      $('#messageBox').html(result.message);
+    }, "json");    
+  }
+
+  // likeClicked
+  function likeClicked(id) {
+    //alert("Like icon id #"+id+" clicked!");
+    $.post("/likeClicked", {id:id}, function(result){
+      $('#messageBox').html(result.message);
+    }, "json");  
+  }
+
+
+</script>
+</html>

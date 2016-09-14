@@ -1,0 +1,42 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <title>Twitter Log In</title>
+  <link href="login-box.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+    <div style="margin-left: 340px;"><h1>Welcome to Twitter!</h1></div>
+    <div style="padding: 100px 0 0 250px;margin-top:-100px;">
+      <div id="login-box">
+        <img src="twitter.svg" style="width:100px;position: absolute;left:600px;" /><H2>Login</H2><br />
+        <!---form id="loginForm" name="loginForm" action="/login" method="POST"---><br />
+          <div id="loginError"></div>
+          <div id="login-box-field" style="margin-top:20px;">
+            <input id="userName" name="userName" class="form-login" title="Username" value="" placeholder="Username" size="30" maxlength="2048" />
+          </div>
+          <div id="login-box-field">
+            <input name="password" type="password" class="form-login" title="Password" value="" placeholder="Password" size="30" maxlength="2048" />
+          </div>
+          <br /><br /><br /><br /><br /><br />
+          <!---a href="/" onclick="login();"><img src="login-btn.png" width="103" height="42" style="margin-left:90px;margin-top:30px;" /></a--->
+          <input class="login-box" type="submit" value="Submit" name="submit" id="submit" />
+        <!---/form--->          
+      </div>
+    </div>    <br /><br /><br />
+</body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+<script>
+$("#submit").click(function(){
+    var txt = $("#userName").val();
+    $.post("/login", {userName: txt}, function(result){
+        if (result.error) {
+          $('#loginError').html(result.error);
+        } else {
+          window.location.replace("/default.html");
+        }
+    }, "json");
+});
+</script>
+</html>
