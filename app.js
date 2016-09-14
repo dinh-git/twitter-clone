@@ -26,7 +26,7 @@ app.get('/', function (req, res) {
     } else {
         res.redirect('/default.html');
     }
-    
+
 });
 
 app.get('/list-user', function (req, res) {
@@ -39,7 +39,7 @@ app.get('/view-tweets', function (req, res) {
     var userName = req.cookies.userName;
     if (userName == null) {
         console.log("cannot find any userName from cookie");
-        res.json({error: "no userName is found from cookies"});
+        res.json({ error: "no userName is found from cookies" });
     } else {
         dbManager.getAllTweet(userName, function (tweets) {
             res.json(tweets);
@@ -55,7 +55,7 @@ app.post('/login', function (req, res) {
             res.cookie('userName', userName);
             res.cookie('userFullName', user.firstName + " " + user.lastName);
             console.log(userName + " is logged in");
-            res.json({userName: user});
+            res.json({ userName: user });
         } else {
             console.log("user is not found");
             res.json({ error: "User is not found" });
@@ -64,32 +64,85 @@ app.post('/login', function (req, res) {
     });
 });
 
-app.all("/logout", function(req, res) {
+app.all("/logout", function (req, res) {
     res.clearCookie("userName");
     //res.json({result: "cookie has been cleared"});
     console.log("user is logged out");
     res.redirect('/login.html');
 });
 
-app.all("/default", function(req, res) {
+app.all("/default", function (req, res) {
     var userName = req.cookies.userName;
     if (userName == null) {
-        res.json({error: "no userName is found from cookies"});
+        res.json({ error: "no userName is found from cookies" });
     } else {
-        res.json({userName: userName});
+        res.json({ userName: userName });
     }
 });
 
-app.all("/followClicked", function(req, res) {
-    var id = req.body.id;
-    console.log("Back-end console says: 'Follow icon clicked!'");
-    res.json({message: "Back-end console says: 'Follow icon id #"+id+" clicked!'"})
+app.all("/list-following", function (req, res) {
+    var userName = req.cookies.userName;
+    dbManager.getAllFollowing(userName, function (rows) {
+        res.json(rows);
+    });
 });
 
-app.all("/likeClicked", function(req, res) {
-    var id = req.body.id;
-    console.log("Back-end console says: 'Like icon clicked!'");
-    res.json({message: "Back-end console says: 'Like icon id #"+id+" clicked!'"})
+app.get("/follow/:followingUserName", function (req, res) {
+    var userName = req.cookies.userName;
+    if (userName) {
+        var followingUserName = req.params.followingUserName;
+        dbManager.doesUserExist(followingUserName, function (user) {
+            if (user) {
+                dbManager.followUser(userName, followingUserName, function (success) {
+                    if (success) {
+                        res.json({ message: "success" });
+                    }
+                });
+            } else {
+                res.json({ error: "User " + followingUserName + " is not found" });
+            }
+        });
+    } else {
+        res.json({ error: "userName is not found from cookies" });
+    }
+});
+
+app.get("/unfollow/:followingUserName", function (req, res) {
+    var userName = req.cookies.userName;
+    if (userName) {
+        var followingUserName = req.params.followingUserName;
+        dbManager.unfollowUser(userName, followingUserName, function (success) {
+            if (success) {
+                res.json({ message: "success" });
+            }
+        });
+    } else {
+        res.json({ error: "userName is not found from cookies" });
+    }
+});
+
+app.get("/like/:tweetId", function (req, res) {
+    var userName = req.cookies.userName;
+    if (userName) {
+        var tweetId = req.params.tweetId;
+        dbManager.getTweetById(tweetId, function (rows) {
+            if (rows.length > 0) {
+                dbManager.likeTweet(userName, tweetId, function (success) {
+                    if (success) {
+                        res.json({ message: "liked" });
+                    } else {
+                        res.json({ error: "cannot find any tweet with id " + tweetId });
+                    }
+                });
+            } else {
+                res.j
+            }
+        });
+    } else {
+        res.json({ error: "userName is not found from cookies" });
+    }
+
+    res.json({ error: "something is wrong" });
 });
 
 app.post('/add-user', function (req, res) {
@@ -115,7 +168,7 @@ app.post('/send-tweet', function (req, res) {
     var userName = req.cookies.userName;
     if (userName == null) {
         console.log("cannot find any userName from cookie");
-        res.json({error: "no userName is found from cookies"});
+        res.json({ error: "no userName is found from cookies" });
     } else {
         var content = req.body.content;
         dbManager.insertTweet(userName, content, function (success) {
